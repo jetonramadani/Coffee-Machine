@@ -6,11 +6,11 @@ enum CoffeeType {
     LATTE(2, 350, 75, 20, 7),
     CAPPUCCINO(3, 200, 100, 12, 6);
 
-    private int ID;
-    private int WATER_REQUIRED;
-    private int MILK_REQUIRED;
-    private int COFFEE_BEANS_REQUIRED;
-    private int COST;
+    private final int ID;
+    private final int WATER_REQUIRED;
+    private final int MILK_REQUIRED;
+    private final int COFFEE_BEANS_REQUIRED;
+    private final int COST;
 
     CoffeeType(int ID, int WATER_REQUIRED, int MILK_REQUIRED, int COFFEE_BEANS_REQUIRED, int COST) {
         this.ID = ID;
@@ -45,9 +45,6 @@ enum CoffeeType {
     }
 }
 class CoffeeMachineFunc {
-    private static final int WATER_REQUIRED = 200;
-    private static final int MILK_REQUIRED = 50;
-    private static final int COFFEE_BEANS_REQUIRED = 15;
     private int water;
     private int milk;
     private int coffeeBeans;
@@ -59,7 +56,6 @@ class CoffeeMachineFunc {
         this.coffeeBeans = coffeeBeans;
         this.cups = cups;
         this.money = money;
-        stats();
     }
     public void add(int watter, int milk, int coffeeBeans, int cups) {
         this.water += watter;
@@ -76,10 +72,6 @@ class CoffeeMachineFunc {
                 "$%d of money",
                 water, milk, coffeeBeans, cups, money);
     }
-    private int canMakeCoffees() {
-        return Math.min(water / WATER_REQUIRED,
-                Math.min(milk / MILK_REQUIRED, coffeeBeans / COFFEE_BEANS_REQUIRED));
-    }
     public void buy(CoffeeType coffeeType) {
         water -= coffeeType.getWATER_REQUIRED();
         milk -= coffeeType.getMILK_REQUIRED();
@@ -87,24 +79,18 @@ class CoffeeMachineFunc {
         money += coffeeType.getCOST();
         --cups;
     }
-    public void printAvailable(int numOfCoffees){
-        boolean isWatterEnough = numOfCoffees * WATER_REQUIRED <= water;
-        boolean isMilkEnough = numOfCoffees * MILK_REQUIRED <= milk;
-        boolean isCoffeeBeansEnough = numOfCoffees * COFFEE_BEANS_REQUIRED <= coffeeBeans;
-        String res;
-        if (isWatterEnough && isMilkEnough && isCoffeeBeansEnough) {
-            water -= WATER_REQUIRED * numOfCoffees;
-            milk -= MILK_REQUIRED * numOfCoffees;
-            coffeeBeans -= COFFEE_BEANS_REQUIRED * numOfCoffees;
-            res = "Yes, I can make that amount of coffee";
-            int left = canMakeCoffees();
-            if (left != 0) {
-                res += String.format("(and even %d more than that)", left);
-            }
+    public void checkAvailable(CoffeeType coffeeType){
+        boolean isWatterEnough = coffeeType.getWATER_REQUIRED() <= water;
+        boolean isMilkEnough = coffeeType.getMILK_REQUIRED() <= milk;
+        boolean isCoffeeBeansEnough = coffeeType.getCOFFEE_BEANS_REQUIRED() <= coffeeBeans;
+
+        if (isWatterEnough && isMilkEnough && isCoffeeBeansEnough && cups != 0) {
+            System.out.println("I have enough resources, making you a coffee!");
+            buy(coffeeType);
         } else {
-            res = String.format("No, I can make only %d cup(s) of coffee", canMakeCoffees());
+            System.out.println("I can't make coffee");
         }
-        System.out.println(res);
+
     }
     public void take() {
         System.out.printf("I gave you $%d\n", money);
@@ -126,22 +112,33 @@ public class CoffeeMachine {
     }
     public static void main(String[] args) {
         CoffeeMachineFunc coffeeMaker = new CoffeeMachineFunc(400, 540, 120, 9, 550);
-        System.out.println("Write action (buy, fill, take): ");
-        String action = sc.next();
-        switch (action) {
-            case "buy":
-                System.out.println("What do you want to buy? 1 - espresso, 2 - latte, 3 - cappuccino: ");
-                coffeeMaker.buy(CoffeeType.getCoffeeType(sc.nextInt()));
-                break;
-            case "fill":
-                fill(coffeeMaker);
-                break;
-            case "take":
-                coffeeMaker.take();
-                break;
-            default:
-                break;
+        boolean goOn = true;
+        while(goOn) {
+            System.out.println("Write action (buy, fill, take, remaining, exit): ");
+            String action = sc.next();
+            switch (action) {
+                case "buy":
+                    System.out.println("What do you want to buy? 1 - espresso, 2 - latte, 3 - cappuccino: ");
+                    String input = sc.next();
+                    if (!input.equals("back")) {
+                        coffeeMaker.checkAvailable(CoffeeType.getCoffeeType(Integer.parseInt(input)));
+                    }
+                    break;
+                case "fill":
+                    fill(coffeeMaker);
+                    break;
+                case "take":
+                    coffeeMaker.take();
+                    break;
+                case "remaining":
+                    coffeeMaker.stats();
+                    break;
+                case "exit":
+                    goOn = false;
+                    break;
+                default:
+                    break;
+            }
         }
-        coffeeMaker.stats();
     }
 }
